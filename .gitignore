@@ -32,8 +32,6 @@ sandbox.py
 .Python
 *.egg
 *.egg-info/
-dist/
-build/
 eggs/
 .eggs/
 lib/
@@ -64,11 +62,11 @@ htmlcov/
 .ipynb_checkpoints
 *.ipynb_checkpoints
 
-# mypy
 .mypy_cache/
 .dmypy.json
 dmypy.json
 
-# Pyre type checker
 .pyre/
+
+# IDEs and editors
 .idea
