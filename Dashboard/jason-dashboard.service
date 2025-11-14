@@ -1,0 +1,16 @@
+[Unit]
+Description=JASON Dashboard - Just A Simple Ordinary Network
+After=network.target
+
+[Service]
+Type=simple
+User=your-username
+WorkingDirectory=/Users/Leo/Documents/Projects/JASONProjects/Dashboard
+Environment="PATH=/Users/Leo/Documents/Projects/JASONProjects/Dashboard/venv/bin"
+ExecStart=/Users/Leo/Documents/Projects/JASONProjects/Dashboard/venv/bin/python main.py
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
+

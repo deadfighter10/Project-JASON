@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>JASON • Command Center</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <style>
+            @keyframes pulse-glow {
+                0%, 100% { opacity: 1; }
+                50% { opacity: 0.5; }
+            }
+            @keyframes scan-line {
+                0% { transform: translateY(-100%); }
+                100% { transform: translateY(100%); }
+            }
+            @keyframes flicker {
+                0%, 100% { opacity: 1; }
+                50% { opacity: 0.8; }
+            }
+            .pulse-glow {
+                animation: pulse-glow 2s ease-in-out infinite;
+            }
+            .scan-line {
+                animation: scan-line 3s linear infinite;
+            }
+            .flicker {
+                animation: flicker 0.1s ease-in-out infinite;
+            }
+            .grid-pattern {
+                background-image:
+                    linear-gradient(rgba(0, 255, 255, 0.05) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(0, 255, 255, 0.05) 1px, transparent 1px);
+                background-size: 20px 20px;
+            }
+            .glow-cyan {
+                box-shadow: 0 0 20px rgba(0, 255, 255, 0.3), inset 0 0 20px rgba(0, 255, 255, 0.1);
+            }
+            .glow-blue {
+                box-shadow: 0 0 20px rgba(59, 130, 246, 0.3), inset 0 0 20px rgba(59, 130, 246, 0.1);
+            }
+            .text-glow {
+                text-shadow: 0 0 10px currentColor;
+            }
+        </style>
+    </head>
+    <body class="bg-black h-screen overflow-hidden grid-pattern flex flex-col">
+
+        <!-- Ambient Scan Line Effect -->
+        <div class="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+            <div class="absolute w-full h-1 bg-gradient-to-r from-transparent via-cyan-500/30 to-transparent scan-line"></div>
+        </div>
+
+        <!-- Header -->
+        <header class="bg-black/80 backdrop-blur-xl border-b border-cyan-500/30 z-50 flex-shrink-0">
+            <div class="absolute inset-0 bg-gradient-to-r from-cyan-500/5 via-blue-500/5 to-cyan-500/5 pointer-events-none"></div>
+            <div class="container mx-auto px-6 py-4 relative">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-full bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center glow-cyan">
+                            <span class="text-2xl">⚡</span>
+                        </div>
+                        <div>
+                            <h1 class="text-3xl font-bold text-cyan-400 text-glow">J.A.S.O.N.</h1>
+                            <p class="text-cyan-500/70 text-sm">Just A Simple Ordinary Network</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <div class="text-right">
+                            <div class="text-cyan-400 text-sm font-mono">SYSTEM STATUS</div>
+                            <div class="text-green-400 text-xs pulse-glow">● ALL SYSTEMS OPERATIONAL</div>
+                        </div>
+                        <div class="text-cyan-400/50 text-2xl">|</div>
+                        <div class="text-cyan-400 font-mono" id="current-time">00:00:00</div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="flex-1 overflow-hidden relative z-10 px-4 py-4">
+
+
+            <!-- Main Dashboard Grid -->
+            <div class="h-full grid grid-cols-12 gap-4">
+
+                <!-- Left Sidebar - Quick Stats -->
+                <div class="col-span-2 h-full overflow-y-auto space-y-4 pr-2">
+                    <!-- CPU Monitor -->
+                    <div class="bg-black/60 backdrop-blur-xl border border-cyan-500/30 rounded-lg p-4 glow-cyan">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="text-cyan-400 text-xs font-mono">CPU</span>
+                            <span class="text-green-400 text-xs pulse-glow">●</span>
+                        </div>
+                        <div class="text-3xl font-bold text-cyan-400 mb-2" data-stat="cpu-percent">23%</div>
+                        <div class="h-1 bg-cyan-950 rounded-full overflow-hidden">
+                            <div class="h-full bg-gradient-to-r from-cyan-500 to-blue-500 w-[23%]" data-stat="cpu-bar"></div>
+                        </div>
+                        <div class="text-cyan-600 text-xs mt-2 font-mono" data-stat="cpu-info">3.2 GHz • 8 cores</div>
+                    </div>
+
+                    <!-- RAM Monitor -->
+                    <div class="bg-black/60 backdrop-blur-xl border border-blue-500/30 rounded-lg p-4 glow-blue">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="text-blue-400 text-xs font-mono">RAM</span>
+                            <span class="text-green-400 text-xs pulse-glow">●</span>
+                        </div>
+                        <div class="text-3xl font-bold text-blue-400 mb-2" data-stat="ram-percent">67%</div>
+                        <div class="h-1 bg-blue-950 rounded-full overflow-hidden">
+                            <div class="h-full bg-gradient-to-r from-blue-500 to-purple-500 w-[67%]" data-stat="ram-bar"></div>
+                        </div>
+                        <div class="text-blue-600 text-xs mt-2 font-mono" data-stat="ram-info">21.4 GB / 32 GB</div>
+                    </div>
+
+                    <!-- Storage Monitor -->
+                    <div class="bg-black/60 backdrop-blur-xl border border-purple-500/30 rounded-lg p-4">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="text-purple-400 text-xs font-mono">STORAGE</span>
+                            <span class="text-green-400 text-xs pulse-glow">●</span>
+                        </div>
+                        <div class="text-3xl font-bold text-purple-400 mb-2" data-stat="disk-percent">42%</div>
+                        <div class="h-1 bg-purple-950 rounded-full overflow-hidden">
+                            <div class="h-full bg-gradient-to-r from-purple-500 to-pink-500 w-[42%]" data-stat="disk-bar"></div>
+                        </div>
+                        <div class="text-purple-600 text-xs mt-2 font-mono" data-stat="disk-info">4.2 TB / 10 TB</div>
+                    </div>
+
+                    <!-- Network Status -->
+                    <div class="bg-black/60 backdrop-blur-xl border border-cyan-500/30 rounded-lg p-4">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="text-cyan-400 text-xs font-mono">NETWORK</span>
+                            <span class="text-green-400 text-xs pulse-glow">●</span>
+                        </div>
+                        <div class="space-y-2">
+                            <div class="flex justify-between text-xs">
+                                <span class="text-cyan-600">↓ DOWN</span>
+                                <span class="text-cyan-400 font-mono" data-stat="network-down">125 Mbps</span>
+                            </div>
+                            <div class="flex justify-between text-xs">
+                                <span class="text-cyan-600">↑ UP</span>
+                                <span class="text-cyan-400 font-mono" data-stat="network-up">89 Mbps</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Temperature -->
+                    <div class="bg-black/60 backdrop-blur-xl border border-orange-500/30 rounded-lg p-4">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="text-orange-400 text-xs font-mono">TEMP</span>
+                            <span class="text-green-400 text-xs pulse-glow">●</span>
+                        </div>
+                        <div class="text-3xl font-bold text-orange-400" data-stat="temp">58°C</div>
+                        <div class="text-orange-600 text-xs mt-2">OPTIMAL RANGE</div>
+                    </div>
+
+                    <!-- Uptime -->
+                    <div class="bg-black/60 backdrop-blur-xl border border-green-500/30 rounded-lg p-4">
+                        <div class="text-green-400 text-xs font-mono mb-2">UPTIME</div>
+                        <div class="text-lg font-bold text-green-400 font-mono" data-stat="uptime">23d 14h 32m</div>
+                    </div>
+                </div>
+
+                <!-- Main Content Area -->
+                <div class="col-span-10 h-full overflow-y-auto space-y-4 flex flex-col">
+
+                    <!-- Top Row - System Overview Cards -->
+                    <div class="grid grid-cols-4 gap-4 flex-shrink-0">
+                        <div class="bg-black/60 backdrop-blur-xl border border-cyan-500/30 rounded-lg p-6 glow-cyan hover:border-cyan-400/50 transition-all cursor-pointer">
+                            <div class="flex items-start justify-between">
+                                <div>
+                                    <div class="text-cyan-600 text-xs font-mono mb-2">ACTIVE SERVICES</div>
+                                    <div class="text-4xl font-bold text-cyan-400" data-overview="services">24</div>
+                                    <div class="text-cyan-600 text-xs mt-2">↑ 2 since last hour</div>
+                                </div>
+                                <div class="text-3xl">🔧</div>
+                            </div>
+                        </div>
+
+                        <div class="bg-black/60 backdrop-blur-xl border border-blue-500/30 rounded-lg p-6 glow-blue hover:border-blue-400/50 transition-all cursor-pointer">
+                            <div class="flex items-start justify-between">
+                                <div>
+                                    <div class="text-blue-600 text-xs font-mono mb-2">CONTAINERS</div>
+                                    <div class="text-4xl font-bold text-blue-400" data-overview="containers">18</div>
+                                    <div class="text-blue-600 text-xs mt-2">Docker • Running</div>
+                                </div>
+                                <div class="text-3xl">🐳</div>
+                            </div>
+                        </div>
+
+                        <div class="bg-black/60 backdrop-blur-xl border border-purple-500/30 rounded-lg p-6 hover:border-purple-400/50 transition-all cursor-pointer">
+                            <div class="flex items-start justify-between">
+                                <div>
+                                    <div class="text-purple-600 text-xs font-mono mb-2">VMs ACTIVE</div>
+                                    <div class="text-4xl font-bold text-purple-400" data-overview="vms">5</div>
+                                    <div class="text-purple-600 text-xs mt-2">Proxmox • Healthy</div>
+                                </div>
+                                <div class="text-3xl">💻</div>
+                            </div>
+                        </div>
+
+                        <div class="bg-black/60 backdrop-blur-xl border border-green-500/30 rounded-lg p-6 hover:border-green-400/50 transition-all cursor-pointer">
+                            <div class="flex items-start justify-between">
+                                <div>
+                                    <div class="text-green-600 text-xs font-mono mb-2">BACKUP STATUS</div>
+                                    <div class="text-4xl font-bold text-green-400">✓</div>
+                                    <div class="text-green-600 text-xs mt-2" data-overview="backup-time">Last: 2 hours ago</div>
+                                </div>
+                                <div class="text-3xl">💾</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Middle Section - Server Status & Monitoring -->
+                    <div class="grid grid-cols-3 gap-4 flex-1 min-h-0">
+                        <!-- Server Status List -->
+                        <div class="col-span-2 bg-black/60 backdrop-blur-xl border border-cyan-500/30 rounded-lg p-6 overflow-auto">
+                            <div class="flex items-center justify-between mb-6">
+                                <h2 class="text-xl font-bold text-cyan-400 text-glow">SERVER STATUS</h2>
+                                <button class="text-xs bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-500/50 text-cyan-400 px-3 py-1 rounded transition">SCAN ALL</button>
+                            </div>
+                            <div class="space-y-3" data-servers="list">
+                                <div class="bg-cyan-950/20 border border-cyan-500/20 rounded-lg p-4 hover:border-cyan-500/40 transition">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center gap-4">
+                                            <div class="w-2 h-2 rounded-full bg-green-400 pulse-glow"></div>
+                                            <div>
+                                                <div class="text-cyan-300 font-mono">pve-node-01</div>
+                                                <div class="text-cyan-700 text-xs">192.168.1.10 • Proxmox</div>
+                                            </div>
+                                        </div>
+                                        <div class="text-right">
+                                            <div class="text-cyan-400 text-sm">CPU: 45%</div>
+                                            <div class="text-cyan-600 text-xs">RAM: 62%</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="bg-cyan-950/20 border border-cyan-500/20 rounded-lg p-4 hover:border-cyan-500/40 transition">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center gap-4">
+                                            <div class="w-2 h-2 rounded-full bg-green-400 pulse-glow"></div>
+                                            <div>
+                                                <div class="text-cyan-300 font-mono">nas-storage</div>
+                                                <div class="text-cyan-700 text-xs">192.168.1.20 • TrueNAS</div>
+                                            </div>
+                                        </div>
+                                        <div class="text-right">
+                                            <div class="text-cyan-400 text-sm">CPU: 12%</div>
+                                            <div class="text-cyan-600 text-xs">RAM: 34%</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="bg-cyan-950/20 border border-cyan-500/20 rounded-lg p-4 hover:border-cyan-500/40 transition">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center gap-4">
+                                            <div class="w-2 h-2 rounded-full bg-green-400 pulse-glow"></div>
+                                            <div>
+                                                <div class="text-cyan-300 font-mono">docker-host</div>
+                                                <div class="text-cyan-700 text-xs">192.168.1.30 • Ubuntu 22.04</div>
+                                            </div>
+                                        </div>
+                                        <div class="text-right">
+                                            <div class="text-cyan-400 text-sm">CPU: 28%</div>
+                                            <div class="text-cyan-600 text-xs">RAM: 71%</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="bg-cyan-950/20 border border-cyan-500/20 rounded-lg p-4 hover:border-cyan-500/40 transition">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center gap-4">
+                                            <div class="w-2 h-2 rounded-full bg-green-400 pulse-glow"></div>
+                                            <div>
+                                                <div class="text-cyan-300 font-mono">kubernetes-master</div>
+                                                <div class="text-cyan-700 text-xs">192.168.1.40 • K8s</div>
+                                            </div>
+                                        </div>
+                                        <div class="text-right">
+                                            <div class="text-cyan-400 text-sm">CPU: 52%</div>
+                                            <div class="text-cyan-600 text-xs">RAM: 89%</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="bg-red-950/20 border border-red-500/20 rounded-lg p-4 hover:border-red-500/40 transition">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center gap-4">
+                                            <div class="w-2 h-2 rounded-full bg-red-400 pulse-glow"></div>
+                                            <div>
+                                                <div class="text-red-300 font-mono">backup-server</div>
+                                                <div class="text-red-700 text-xs">192.168.1.50 • OFFLINE</div>
+                                            </div>
+                                        </div>
+                                        <div class="text-right">
+                                            <div class="text-red-400 text-sm">ERROR</div>
+                                            <div class="text-red-600 text-xs">No response</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Real-time Performance Graph -->
+                        <div class="bg-black/60 backdrop-blur-xl border border-blue-500/30 rounded-lg p-6">
+                            <h2 class="text-xl font-bold text-blue-400 text-glow mb-6">PERFORMANCE</h2>
+                            <div class="space-y-6">
+                                <div>
+                                    <div class="flex justify-between text-xs text-blue-600 mb-2">
+                                        <span>CPU USAGE</span>
+                                        <span data-perf="cpu-percent">23%</span>
+                                    </div>
+                                    <div class="h-2 bg-blue-950 rounded-full overflow-hidden">
+                                        <div class="h-full bg-gradient-to-r from-blue-500 to-cyan-500 w-[23%] transition-all duration-500" data-perf="cpu-bar"></div>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <div class="flex justify-between text-xs text-purple-600 mb-2">
+                                        <span>MEMORY</span>
+                                        <span data-perf="mem-percent">67%</span>
+                                    </div>
+                                    <div class="h-2 bg-purple-950 rounded-full overflow-hidden">
+                                        <div class="h-full bg-gradient-to-r from-purple-500 to-pink-500 w-[67%] transition-all duration-500" data-perf="mem-bar"></div>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <div class="flex justify-between text-xs text-cyan-600 mb-2">
+                                        <span>NETWORK I/O</span>
+                                        <span>45%</span>
+                                    </div>
+                                    <div class="h-2 bg-cyan-950 rounded-full overflow-hidden">
+                                        <div class="h-full bg-gradient-to-r from-cyan-500 to-blue-500 w-[45%] transition-all duration-500"></div>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <div class="flex justify-between text-xs text-green-600 mb-2">
+                                        <span>DISK I/O</span>
+                                        <span>31%</span>
+                                    </div>
+                                    <div class="h-2 bg-green-950 rounded-full overflow-hidden">
+                                        <div class="h-full bg-gradient-to-r from-green-500 to-emerald-500 w-[31%] transition-all duration-500"></div>
+                                    </div>
+                                </div>
+
+                                <div class="mt-8 pt-6 border-t border-blue-500/20">
+                                    <div class="text-xs text-blue-600 mb-3">SYSTEM LOAD</div>
+                                    <div class="grid grid-cols-3 gap-2">
+                                        <div class="text-center">
+                                            <div class="text-blue-400 font-mono text-sm" data-stat="load-1m">1.23</div>
+                                            <div class="text-blue-700 text-xs">1m</div>
+                                        </div>
+                                        <div class="text-center">
+                                            <div class="text-blue-400 font-mono text-sm" data-stat="load-5m">1.45</div>
+                                            <div class="text-blue-700 text-xs">5m</div>
+                                        </div>
+                                        <div class="text-center">
+                                            <div class="text-blue-400 font-mono text-sm" data-stat="load-15m">1.67</div>
+                                            <div class="text-blue-700 text-xs">15m</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bottom Section - Services & Activity -->
+                    <div class="grid grid-cols-3 gap-4 h-[330px] flex-shrink-0">
+                        <!-- Running Services -->
+                        <div class="bg-black/60 backdrop-blur-xl border border-cyan-500/30 rounded-lg p-6 overflow-auto">
+                            <h2 class="text-xl font-bold text-cyan-400 text-glow mb-4">SERVICES</h2>
+                            <div class="space-y-2" data-services="list">
+                                <div class="bg-cyan-950/20 border border-cyan-500/20 rounded p-3 flex items-center justify-between hover:border-cyan-500/40 transition">
+                                    <div class="flex items-center gap-3">
+                                        <span class="text-green-400 text-xs pulse-glow">●</span>
+                                        <span class="text-cyan-300 text-sm font-mono">nginx</span>
+                                    </div>
+                                    <span class="text-cyan-600 text-xs">:80, :443</span>
+                                </div>
+
+                                <div class="bg-cyan-950/20 border border-cyan-500/20 rounded p-3 flex items-center justify-between hover:border-cyan-500/40 transition">
+                                    <div class="flex items-center gap-3">
+                                        <span class="text-green-400 text-xs pulse-glow">●</span>
+                                        <span class="text-cyan-300 text-sm font-mono">postgresql</span>
+                                    </div>
+                                    <span class="text-cyan-600 text-xs">:5432</span>
+                                </div>
+
+                                <div class="bg-cyan-950/20 border border-cyan-500/20 rounded p-3 flex items-center justify-between hover:border-cyan-500/40 transition">
+                                    <div class="flex items-center gap-3">
+                                        <span class="text-green-400 text-xs pulse-glow">●</span>
+                                        <span class="text-cyan-300 text-sm font-mono">redis</span>
+                                    </div>
+                                    <span class="text-cyan-600 text-xs">:6379</span>
+                                </div>
+
+                                <div class="bg-cyan-950/20 border border-cyan-500/20 rounded p-3 flex items-center justify-between hover:border-cyan-500/40 transition">
+                                    <div class="flex items-center gap-3">
+                                        <span class="text-green-400 text-xs pulse-glow">●</span>
+                                        <span class="text-cyan-300 text-sm font-mono">plex</span>
+                                    </div>
+                                    <span class="text-cyan-600 text-xs">:32400</span>
+                                </div>
+
+                                <div class="bg-cyan-950/20 border border-cyan-500/20 rounded p-3 flex items-center justify-between hover:border-cyan-500/40 transition">
+                                    <div class="flex items-center gap-3">
+                                        <span class="text-green-400 text-xs pulse-glow">●</span>
+                                        <span class="text-cyan-300 text-sm font-mono">homebridge</span>
+                                    </div>
+                                    <span class="text-cyan-600 text-xs">:8581</span>
+                                </div>
+
+                                <div class="bg-cyan-950/20 border border-cyan-500/20 rounded p-3 flex items-center justify-between hover:border-cyan-500/40 transition">
+                                    <div class="flex items-center gap-3">
+                                        <span class="text-green-400 text-xs pulse-glow">●</span>
+                                        <span class="text-cyan-300 text-sm font-mono">grafana</span>
+                                    </div>
+                                    <span class="text-cyan-600 text-xs">:3000</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- System Activity Log -->
+                        <div class="col-span-2 bg-black/60 backdrop-blur-xl border border-purple-500/30 rounded-lg p-6 overflow-auto">
+                            <div class="flex items-center justify-between mb-4">
+                                <h2 class="text-xl font-bold text-purple-400 text-glow">ACTIVITY LOG</h2>
+                                <div class="text-xs text-purple-600 font-mono">LIVE</div>
+                            </div>
+                            <div class="space-y-2 font-mono text-xs" data-logs="activity">
+                                <div class="text-cyan-400 flex gap-3">
+                                    <span class="text-cyan-700">[23:45:12]</span>
+                                    <span>✓ Container 'plex' health check passed</span>
+                                </div>
+                                <div class="text-green-400 flex gap-3">
+                                    <span class="text-green-700">[23:44:58]</span>
+                                    <span>✓ Backup job 'daily-nas' completed successfully</span>
+                                </div>
+                                <div class="text-blue-400 flex gap-3">
+                                    <span class="text-blue-700">[23:44:32]</span>
+                                    <span>⚡ New connection from 192.168.1.105</span>
+                                </div>
+                                <div class="text-cyan-400 flex gap-3">
+                                    <span class="text-cyan-700">[23:43:17]</span>
+                                    <span>✓ SSL certificate renewed for *.homelab.local</span>
+                                </div>
+                                <div class="text-yellow-400 flex gap-3">
+                                    <span class="text-yellow-700">[23:42:45]</span>
+                                    <span>⚠ CPU temperature spike detected: 68°C</span>
+                                </div>
+                                <div class="text-green-400 flex gap-3">
+                                    <span class="text-green-700">[23:41:23]</span>
+                                    <span>✓ Docker container 'monitoring-stack' started</span>
+                                </div>
+                                <div class="text-red-400 flex gap-3">
+                                    <span class="text-red-700">[23:40:01]</span>
+                                    <span>✗ Failed SSH attempt from 203.45.67.89</span>
+                                </div>
+                                <div class="text-cyan-400 flex gap-3">
+                                    <span class="text-cyan-700">[23:39:45]</span>
+                                    <span>✓ Scheduled task 'update-ddns' completed</span>
+                                </div>
+                                <div class="text-purple-400 flex gap-3">
+                                    <span class="text-purple-700">[23:38:12]</span>
+                                    <span>⚙ VM 'k8s-worker-02' snapshot created</span>
+                                </div>
+                                <div class="text-blue-400 flex gap-3">
+                                    <span class="text-blue-700">[23:37:29]</span>
+                                    <span>⚡ Webhook received from github.com</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="relative bg-black/80 backdrop-blur-xl border-t border-cyan-500/30 flex-shrink-0">
+            <div class="container mx-auto px-6 py-4">
+                <div class="flex items-center justify-between text-xs">
+                    <div class="text-cyan-600 font-mono">JASON v2.0.1 • Just A Simple Ordinary Network</div>
+                    <div class="flex items-center gap-6">
+                        <div class="text-cyan-600">System Time: <span class="text-cyan-400 font-mono" id="footer-time">00:00:00</span></div>
+                        <div class="text-cyan-600">Lat: <span class="text-cyan-400">23ms</span></div>
+                        <div class="text-green-600 flex items-center gap-2">
+                            <span class="pulse-glow">●</span> All Systems Operational
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </footer>
+
+        <script>
+            const API_BASE = 'http://localhost:5000/api';
+
+            // Real-time clock update
+            function updateTime() {
+                const now = new Date();
+                const timeString = now.toLocaleTimeString('en-US', { hour12: false });
+                document.getElementById('current-time').textContent = timeString;
+                document.getElementById('footer-time').textContent = timeString;
+            }
+            updateTime();
+            setInterval(updateTime, 1000);
+
+            // Fetch system stats
+            async function fetchSystemStats() {
+                try {
+                    const response = await fetch(`${API_BASE}/system/stats`);
+                    const data = await response.json();
+
+                    // Update CPU
+                    document.querySelector('[data-stat="cpu-percent"]').textContent = `${data.cpu.percent}%`;
+                    document.querySelector('[data-stat="cpu-bar"]').style.width = `${data.cpu.percent}%`;
+                    document.querySelector('[data-stat="cpu-info"]').textContent = `${data.cpu.freq} GHz • ${data.cpu.cores} cores`;
+
+                    // Update RAM
+                    document.querySelector('[data-stat="ram-percent"]').textContent = `${data.memory.percent}%`;
+                    document.querySelector('[data-stat="ram-bar"]').style.width = `${data.memory.percent}%`;
+                    document.querySelector('[data-stat="ram-info"]').textContent = `${data.memory.used_gb} GB / ${data.memory.total_gb} GB`;
+
+                    // Update Storage
+                    document.querySelector('[data-stat="disk-percent"]').textContent = `${data.disk.percent}%`;
+                    document.querySelector('[data-stat="disk-bar"]').style.width = `${data.disk.percent}%`;
+                    document.querySelector('[data-stat="disk-info"]').textContent = `${data.disk.used_tb} TB / ${data.disk.total_tb} TB`;
+
+                    // Update Network
+                    document.querySelector('[data-stat="network-down"]').textContent = `${data.network.download_mbps} Mbps`;
+                    document.querySelector('[data-stat="network-up"]').textContent = `${data.network.upload_mbps} Mbps`;
+
+                    // Update Temperature
+                    document.querySelector('[data-stat="temp"]').textContent = `${data.temperature}°C`;
+
+                    // Update Uptime
+                    document.querySelector('[data-stat="uptime"]').textContent = data.uptime;
+
+                    // Update System Load
+                    document.querySelector('[data-stat="load-1m"]').textContent = data.load_avg[0];
+                    document.querySelector('[data-stat="load-5m"]').textContent = data.load_avg[1];
+                    document.querySelector('[data-stat="load-15m"]').textContent = data.load_avg[2];
+
+                    // Update performance bars
+                    document.querySelector('[data-perf="cpu-bar"]').style.width = `${data.cpu.percent}%`;
+                    document.querySelector('[data-perf="cpu-percent"]').textContent = `${data.cpu.percent}%`;
+                    document.querySelector('[data-perf="mem-bar"]').style.width = `${data.memory.percent}%`;
+                    document.querySelector('[data-perf="mem-percent"]').textContent = `${data.memory.percent}%`;
+
+                } catch (error) {
+                    console.error('Error fetching system stats:', error);
+                }
+            }
+
+            // Fetch overview stats
+            async function fetchOverviewStats() {
+                try {
+                    const response = await fetch(`${API_BASE}/overview/stats`);
+                    const data = await response.json();
+
+                    document.querySelector('[data-overview="services"]').textContent = data.active_services;
+                    document.querySelector('[data-overview="containers"]').textContent = data.containers;
+                    document.querySelector('[data-overview="vms"]').textContent = data.vms;
+                    document.querySelector('[data-overview="backup-time"]').textContent = `Last: ${data.last_backup}`;
+
+                } catch (error) {
+                    console.error('Error fetching overview stats:', error);
+                }
+            }
+
+            // Fetch server nodes
+            async function fetchServerNodes() {
+                try {
+                    const response = await fetch(`${API_BASE}/proxmox/nodes`);
+                    const data = await response.json();
+
+                    const serverContainer = document.querySelector('[data-servers="list"]');
+                    if (!serverContainer) return;
+
+                    serverContainer.innerHTML = data.nodes.map(node => {
+                        const statusColor = node.status === 'online' ? 'green' : 'red';
+                        const bgColor = node.status === 'online' ? 'cyan-950/20' : 'red-950/20';
+                        const borderColor = node.status === 'online' ? 'cyan-500/20' : 'red-500/20';
+                        const textColor = node.status === 'online' ? 'cyan' : 'red';
+
+                        return `
+                            <div class="bg-${bgColor} border border-${borderColor} rounded-lg p-4 hover:border-${textColor}-500/40 transition">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-4">
+                                        <div class="w-2 h-2 rounded-full bg-${statusColor}-400 pulse-glow"></div>
+                                        <div>
+                                            <div class="text-${textColor}-300 font-mono">${node.name}</div>
+                                            <div class="text-${textColor}-700 text-xs">${node.ip} • ${node.type}</div>
+                                        </div>
+                                    </div>
+                                    <div class="text-right">
+                                        <div class="text-${textColor}-400 text-sm">CPU: ${node.cpu}%</div>
+                                        <div class="text-${textColor}-600 text-xs">RAM: ${node.ram}%</div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+
+                } catch (error) {
+                    console.error('Error fetching server nodes:', error);
+                }
+            }
+
+            // Fetch services status
+            async function fetchServicesStatus() {
+                try {
+                    const response = await fetch(`${API_BASE}/services/status`);
+                    const data = await response.json();
+
+                    const servicesContainer = document.querySelector('[data-services="list"]');
+                    if (!servicesContainer) return;
+
+                    servicesContainer.innerHTML = data.services.map(service => {
+                        const statusColor = service.status === 'running' ? 'green' : 'red';
+
+                        return `
+                            <div class="bg-cyan-950/20 border border-cyan-500/20 rounded p-3 flex items-center justify-between hover:border-cyan-500/40 transition">
+                                <div class="flex items-center gap-3">
+                                    <span class="text-${statusColor}-400 text-xs pulse-glow">●</span>
+                                    <span class="text-cyan-300 text-sm font-mono">${service.name}</span>
+                                </div>
+                                <span class="text-cyan-600 text-xs">:${service.port}</span>
+                            </div>
+                        `;
+                    }).join('');
+
+                } catch (error) {
+                    console.error('Error fetching services:', error);
+                }
+            }
+
+            // Fetch activity logs
+            async function fetchActivityLogs() {
+                try {
+                    const response = await fetch(`${API_BASE}/activity/logs`);
+                    const data = await response.json();
+
+                    const logsContainer = document.querySelector('[data-logs="activity"]');
+                    if (!logsContainer) return;
+
+                    logsContainer.innerHTML = data.logs.map(log => {
+                        const colorMap = {
+                            'success': 'green',
+                            'error': 'red',
+                            'warning': 'yellow',
+                            'info': 'cyan'
+                        };
+                        const color = colorMap[log.type] || 'cyan';
+
+                        return `
+                            <div class="text-${color}-400 flex gap-3">
+                                <span class="text-${color}-700">[${log.timestamp}]</span>
+                                <span>${log.message}</span>
+                            </div>
+                        `;
+                    }).join('');
+
+                } catch (error) {
+                    console.error('Error fetching activity logs:', error);
+                }
+            }
+
+            // Initial load
+            fetchSystemStats();
+            fetchOverviewStats();
+            fetchServerNodes();
+            fetchServicesStatus();
+            fetchActivityLogs();
+
+            // Update data every 5 seconds
+            setInterval(() => {
+                fetchSystemStats();
+                fetchOverviewStats();
+                fetchActivityLogs();
+            }, 5000);
+
+            // Update servers and services every 30 seconds
+            setInterval(() => {
+                fetchServerNodes();
+                fetchServicesStatus();
+            }, 30000);
+        </script>
+    </body>
+</html>
