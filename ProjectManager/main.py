@@ -26,10 +26,13 @@ class Project:
         project_path = storage_path / f"Project {self.name}"
         if project_path.exists():
             return 1
-        project_path.mkdir(parents=True, exist_ok=True)
-        (project_path / "type.txt").write_text(self.type or "undefined")
-        (project_path / "tag.txt").write_text(self.tag or "undefined")
-        return 0
+        try:
+            project_path.mkdir(parents=True, exist_ok=True)
+            (project_path / "README.md").touch()
+            (project_path / "README.md").write_text(f"# {self.name}\n\nType: {self.type}\nTag: {self.tag}\n")
+            return 0
+        except Exception as e:
+            return 2
 
     def delete_project(self):
         project_path = storage_path / self.name
@@ -61,7 +64,9 @@ class ProjectManager:
 
     def list_projects(self, name: str = None, uuid: str = None) -> list:
         if name:
-            return [p.__dict__ for p in self.projects if p.name == name]
+            return [p.__dict__ for p in self.projects if p.name == f"{name}"]
+        if uuid:
+            return [p.__dict__ for p in self.projects if p.uuid == uuid]
         return [p.__dict__ for p in self.projects]
 
     def get_project_by_uuid(self, project_uuid: str) -> Project:
@@ -88,6 +93,8 @@ class ProjectManager:
                     )
                     project.uuid = uuid
                     self.add_project(project)
+        else:
+            registry_path.touch()
 
 
 app = Flask(__name__)
@@ -124,6 +131,9 @@ def create_project():
         if status == 1:
             response['message'] = 'Project already exists'
             response['status'] = 'Failed'
+        elif status == 2:
+            response['message'] = 'Unexpected error occurred while creating project'
+            response['status'] = 'Failed'
         else:
             manager.add_project(project)
             response['message'] = 'Project created'
@@ -144,13 +154,13 @@ def delete_project():
             name=projectname,
             type=None,
             tag=None)
-
         status = project.delete_project()
 
         if status == 1:
             response['message'] = 'Project does not exist'
             response['status'] = 'Failed'
         else:
+            manager.remove_project(project.uuid)
             response['message'] = 'Project deleted'
             response['status'] = 'Successful'
 
@@ -183,7 +193,7 @@ if __name__ == "__main__":
         })
 
         response2 = client.post("/createproject", json={
-            "name": "TestProject",
+            "name": "TestProject2",
             "type": "python",
             "Tag": "example"
         })
@@ -194,4 +204,7 @@ if __name__ == "__main__":
         response1 = client.post("/listprojects", json={
             "name": "TestProject"
         })
-        print(response1.get_json())
+        print(*response1.get_json()['projects'])
+
+        response1 = client.post("/listprojects", json={})
+        print(*response1.get_json()['projects'])
