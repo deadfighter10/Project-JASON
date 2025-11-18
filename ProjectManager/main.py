@@ -1,9 +1,12 @@
+import os
 from flask import Flask, render_template, jsonify, request
 from pathlib import Path
 from dataclasses import dataclass
 from enum import Enum
 import json
 from uuid import uuid4
+from dotenv import load_dotenv
+load_dotenv()
 
 
 class ProjectType(str, Enum):
@@ -35,7 +38,7 @@ class Project:
             return 2
 
     def delete_project(self):
-        project_path = storage_path / self.name
+        project_path = storage_path / f"Project {self.name}"
         if project_path.exists():
             for item in project_path.iterdir():
                 item.unlink()
@@ -92,14 +95,14 @@ class ProjectManager:
                         tag=pdata['tag']
                     )
                     project.uuid = uuid
-                    self.add_project(project)
+                    self.projects.append(project)
         else:
             registry_path.touch()
 
-
 app = Flask(__name__)
+DEFAULT_STORAGE = "mnt/nas/Projects"
 
-storage_path = Path("/Users/Leo/projects")
+storage_path = Path(os.environ.get("PROJECT_PATH_MAC", DEFAULT_STORAGE))
 storage_path.mkdir(parents=True, exist_ok=True)
 
 manager = ProjectManager()
@@ -185,26 +188,4 @@ def list_projects():
         return jsonify(response)
 
 if __name__ == "__main__":
-    with app.test_client() as client:
-        response = client.post("/createproject", json={
-            "name": "TestProject",
-            "type": "python",
-            "Tag": "example"
-        })
-
-        response2 = client.post("/createproject", json={
-            "name": "TestProject2",
-            "type": "python",
-            "Tag": "example"
-        })
-
-        print(response.get_json())
-        print(response.get_json())
-
-        response1 = client.post("/listprojects", json={
-            "name": "TestProject"
-        })
-        print(*response1.get_json()['projects'])
-
-        response1 = client.post("/listprojects", json={})
-        print(*response1.get_json()['projects'])
+    app.run(host="0.0.0.0", debug=True)

@@ -1,0 +1,11 @@
+# Ignore common development files and directories
+.git/
+.gitignore
+node_modules/
+venv/
+.env
+*.log
+
+# Ignore all markdown files except README.md
+*.md
+!README.md
