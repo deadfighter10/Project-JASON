@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from enum import Enum
 import json
 from uuid import uuid4
+from git import Repo
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -31,8 +32,14 @@ class Project:
             return 1
         try:
             project_path.mkdir(parents=True, exist_ok=True)
+            repo = Repo.init(project_path)
             (project_path / "README.md").touch()
             (project_path / "README.md").write_text(f"# {self.name}\n\nType: {self.type}\nTag: {self.tag}\n")
+            (project_path / "requirements.txt").touch()
+            (project_path / ".gitignore").touch()
+            (project_path / "Dockerfile").touch()
+            (project_path / ".dockerignore").touch()
+            (project_path / ".env").touch()
             return 0
         except Exception as e:
             return 2
