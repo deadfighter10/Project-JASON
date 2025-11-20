@@ -20,11 +20,14 @@ class ProjectType(str, Enum):
     ALPHA = "alpha"
 
 class Project:
-    def __init__(self, name, type, tag):
+    def __init__(self, name, type, tag, uuid=None):
         self.name = name
         self.type = type
         self.tag = tag
-        self.uuid = str(uuid4())
+        if uuid:
+            self.uuid = uuid
+        else:
+            self.uuid = str(uuid4())
 
     def create_project(self):
         project_path = storage_path / f"Project {self.name}"
