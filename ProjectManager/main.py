@@ -1,4 +1,6 @@
 import os
+import shutil
+
 from flask import Flask, render_template, jsonify, request
 from pathlib import Path
 from dataclasses import dataclass
@@ -50,10 +52,12 @@ class Project:
     def delete_project(self):
         project_path = storage_path / f"Project {self.name}"
         if project_path.exists():
-            for item in project_path.iterdir():
-                item.unlink()
-            project_path.rmdir()
-            return 0
+            try:
+                shutil.rmtree(project_path)
+                return 0
+            except Exception as e:
+                print(f"Error deleting project: {e}")
+                return 1
         return 1
 
     def json_serialize(self):
@@ -110,7 +114,7 @@ class ProjectManager:
             registry_path.touch()
 
 app = Flask(__name__)
-DEFAULT_STORAGE = ""
+DEFAULT_STORAGE = "/data"
 
 storage_path = Path(os.environ.get("PROJECT_PATH_MAC", DEFAULT_STORAGE))
 storage_path.mkdir(parents=True, exist_ok=True)
@@ -163,14 +167,27 @@ def delete_project():
         response = {}
         projectname = data.get('name', None)
 
-        project = Project(
-            name=projectname,
-            type=None,
-            tag=None)
+        existing_projects = manager.list_projects(name=projectname)
+
+        if not existing_projects:
+            response['message'] = 'Project does not exist'
+            response['status'] = 'Failed'
+            return jsonify(response)
+
+        # 2. Get the object so we have the correct UUID
+        p_data = existing_projects[0]
+        project = manager.get_project_by_uuid(p_data['uuid'])
+
+        if not project:
+            # Should not happen if list_projects found it, but safety first
+            response['message'] = 'Project registry error'
+            response['status'] = 'Failed'
+            return jsonify(response)
+
         status = project.delete_project()
 
         if status == 1:
-            response['message'] = 'Project does not exist'
+            response['message'] = 'Failed to delete project files'
             response['status'] = 'Failed'
         else:
             manager.remove_project(project.uuid)
@@ -179,7 +196,7 @@ def delete_project():
 
         return jsonify(response)
 
-    return jsonify({'message': 'Successful'})
+    return jsonify({'message': 'Invalid request', 'status': 'Failed'})
 
 @app.route("/listprojects", methods=["POST"])
 def list_projects():
