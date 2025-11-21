@@ -1,0 +1,11 @@
+services:
+  projectmanager:
+    build: .
+    container_name: project_jason_manager
+    ports:
+      - "3333:3333"
+    volumes:
+      - /mnt/nas/projects:/mnt/nas/projects
+    env_file:
+      - .env
+    restart: unless-stopped
