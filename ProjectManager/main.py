@@ -114,7 +114,7 @@ class ProjectManager:
             registry_path.touch()
 
 app = Flask(__name__)
-DEFAULT_STORAGE = "/data"
+DEFAULT_STORAGE = "/mnt/nas/projects"
 
 storage_path = Path(os.environ.get("PROJECT_PATH_MAC", DEFAULT_STORAGE))
 storage_path.mkdir(parents=True, exist_ok=True)
