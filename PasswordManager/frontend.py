@@ -105,30 +105,44 @@ def init():
 
 @app.command()
 def add(
-    site: str = typer.Option(..., prompt="What is the site/service name?"),
-    password: str = typer.Option(..., prompt="Enter the password", hide_input=True, confirmation_prompt=True)
+    site: str = typer.Option(..., prompt="🌐 What is the site/service name?"),
+    username: str = typer.Option(..., prompt="👤 Enter the username/email"),
+    password: str = typer.Option(..., prompt="🔑 Enter the password", hide_input=True, confirmation_prompt=True)
 ):
     crypto = CryptoEngine(USB_KEY_PATH)
     sync = VaultSync(crypto)
     
     vault = sync.pull()
     
-    vault[site] = password
-    typer.secho(f"Added password for {site}", fg=typer.colors.GREEN)
+    # Save as a dictionary instead of just a string
+    vault[site] = {
+        "username": username,
+        "password": password
+    }
     
+    typer.secho(f"✅ Saved credentials for {site}", fg=typer.colors.GREEN)
     sync.push(vault)
 
 @app.command()
 def get(
-    site: str = typer.Option(..., prompt="Which site do you need?")
+    site: str = typer.Option(..., prompt="🔎 Which site do you need?")
 ):
     crypto = CryptoEngine(USB_KEY_PATH)
     sync = VaultSync(crypto)
     
     vault = sync.pull()
     if site in vault:
-        pwd = vault[site]
-        # print(f"Password: {pwd}")  <-- Optional: Comment this out if you only want it on clipboard
+        entry = vault[site]
+        
+        if isinstance(entry, dict):
+            user = entry.get("username", "Unknown")
+            pwd = entry.get("password", "")
+        else:
+            user = "N/A (Old Data Format)"
+            pwd = entry
+            
+        typer.secho(f"👤 Username: {user}", fg=typer.colors.CYAN)
+        
         try:
             pyperclip.copy(pwd)
             typer.secho(f"✨ Password for '{site}' copied to clipboard!", fg=typer.colors.GREEN, bold=True)
