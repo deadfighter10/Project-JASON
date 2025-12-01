@@ -15,7 +15,6 @@ USERNAME = "phoenix"
 
 app = typer.Typer()
 
-# --- Cryptography Engine ---
 class CryptoEngine:
     def __init__(self, key_file_path):
         if not os.path.exists(key_file_path):
@@ -105,27 +104,26 @@ def init():
 
 @app.command()
 def add(
-    site: str = typer.Option(..., prompt="🌐 What is the site/service name?"),
-    username: str = typer.Option(..., prompt="👤 Enter the username/email"),
-    password: str = typer.Option(..., prompt="🔑 Enter the password", hide_input=True, confirmation_prompt=True)
+    site: str = typer.Option(..., prompt="What is the site/service name?"),
+    username: str = typer.Option(..., prompt="Enter the username/email"),
+    password: str = typer.Option(..., prompt="Enter the password", hide_input=True, confirmation_prompt=True)
 ):
     crypto = CryptoEngine(USB_KEY_PATH)
     sync = VaultSync(crypto)
     
     vault = sync.pull()
     
-    # Save as a dictionary instead of just a string
     vault[site] = {
         "username": username,
         "password": password
     }
     
-    typer.secho(f"✅ Saved credentials for {site}", fg=typer.colors.GREEN)
+    typer.secho(f"Saved credentials for {site}", fg=typer.colors.GREEN)
     sync.push(vault)
 
 @app.command()
 def get(
-    site: str = typer.Option(..., prompt="🔎 Which site do you need?")
+    site: str = typer.Option(..., prompt="Which site do you need?")
 ):
     crypto = CryptoEngine(USB_KEY_PATH)
     sync = VaultSync(crypto)
@@ -154,27 +152,23 @@ def get(
 
 @app.command()
 def delete(
-    site: str = typer.Option(..., prompt="🗑️ Which site do you want to delete?")
+    site: str = typer.Option(..., prompt="Which site do you want to delete?")
 ):
     crypto = CryptoEngine(USB_KEY_PATH)
     sync = VaultSync(crypto)
     
-    # 1. Get current vault
     vault = sync.pull()
     
-    # 2. Check if exists
     if site not in vault:
         typer.secho(f"Site '{site}' not found in vault.", fg=typer.colors.RED)
         raise typer.Exit(1)
 
-    # 3. Confirm deletion
     delete_confirm = typer.confirm(f"Are you sure you want to PERMANENTLY delete the password for '{site}'?", default=False)
     
     if not delete_confirm:
         typer.echo("Operation cancelled.")
         raise typer.Exit()
 
-    # 4. Delete and Sync
     del vault[site]
     sync.push(vault)
     typer.secho(f"Password for '{site}' deleted.", fg=typer.colors.GREEN)
