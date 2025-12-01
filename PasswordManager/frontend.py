@@ -8,9 +8,12 @@ import pyperclip
 from cryptography.hazmat.primitives.kdf.hkdf import HKDF
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+from dotenv import load_dotenv
+
+load_dotenv()
 
 SERVER_URL = "http://192.168.100.96:3333" 
-USB_KEY_PATH = "/Volumes/ECHO1/pass.key"
+USB_KEY_PATH = os.getenv("USB_KEY_PATH", "")
 USERNAME = "phoenix"
 
 app = typer.Typer()
@@ -100,7 +103,7 @@ app.add_typer(api_app, name="api", help="Manage API Keys and Secrets")
 
 @api_app.command("add")
 def add_api(
-    name: str = typer.Option(..., prompt="Service Name (e.g., 'OpenAI', 'AWS')"),
+    name: str = typer.Option(..., prompt="Service Name"),
     key: str = typer.Option(..., prompt="API Key / Public Key", hide_input=True),
     secret: str = typer.Option("", prompt="Secret Key (Optional, press Enter to skip)", hide_input=True)
 ):
