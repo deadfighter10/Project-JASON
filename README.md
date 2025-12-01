@@ -37,6 +37,8 @@ On your computer, you need to use either venv or global python commands and run 
 
 ```pip install -r requirements.txt```
 
+Also, you need to set the .env file in the folder based on the [.env.example](PasswordManager/.env.example)
+
 And then, you should be set to use: 
 
 ```python frontend.py add```
