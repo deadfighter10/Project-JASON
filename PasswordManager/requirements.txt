@@ -1,0 +1,5 @@
+cryptography
+typer
+pyperclip
+fastapi
+pydantic

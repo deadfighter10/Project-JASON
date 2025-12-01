@@ -1,0 +1,9 @@
+services:
+  jason-vault:
+    build: .
+    container_name: PasswordManager
+    restart: unless-stopped
+    ports:
+      - "3333:3333"
+    volumes:
+      - /mnt/nas:/mnt/nas:rw

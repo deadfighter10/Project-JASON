@@ -112,6 +112,7 @@ class ProjectManager:
                     self.projects.append(project)
         else:
             registry_path.touch()
+            registry_path.write_text("{}")
 
 app = Flask(__name__)
 DEFAULT_STORAGE = "/mnt/nas/Projects"
