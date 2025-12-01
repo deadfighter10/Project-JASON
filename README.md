@@ -16,7 +16,7 @@ A custom lightweight terminal-based safe password storage with the following fea
     - **delete**: Delete an entry
     - **edit**: Edit an existing entry
 - **Current Entry types**:
-    - **Passwords**: ```python frontend.py add```, ```python frontend.py get```, ect...
+    - **Passwords**: ```python frontend.py init```, ```python frontend.py add```, ect...
     - **Cards**: ```python frontend.py card add```, ```python frontend.py card get```, ect...
     - **API keys**: ```python frontend.py api add```, ect...
 - **Other Good tips**:
@@ -37,8 +37,12 @@ On your computer, you need to use either venv or global python commands and run 
 
 ```pip install -r requirements.txt```
 
-Also, you need to set the .env file in the folder based on the [.env.example](PasswordManager/.env.example)
+Also, you need to set the .env file in the folder based on the [.env.example](PasswordManager/.env.example). The project try to use physical keys (like a USB that stores the key file), so it is heavily preferred to use one, but it should work with a normal path on the computer. **THE PROGRAM DOES NOT GENERATE THE KEYFILE FOR SECURITY REASONS!** You need to do it with a separate commmand. Go to the place where you will store the key and run (later, set these paths to the .env file):
 
-And then, you should be set to use: 
+Mac/Linux: ```openssl rand -out pass.key 64```
+Windows (Powershell): ```$bytes = New-Object Byte[] 64; (New-Object Security.Cryptography.RNGCryptoServiceProvider).GetBytes($bytes); [System.IO.File]::WriteAllBytes("pass.key", $bytes)```
+Cross-Platform (with Python): ```python -c "import os; open('pass.key', 'wb').write(os.urandom(64))"```
 
-```python frontend.py add```
+Finally, you should be set to init your account on the server: 
+
+```python frontend.py init```

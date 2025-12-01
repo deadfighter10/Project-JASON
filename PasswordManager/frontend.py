@@ -14,7 +14,7 @@ load_dotenv()
 
 SERVER_URL = "http://192.168.100.96:3333" 
 USB_KEY_PATH = os.getenv("USB_KEY_PATH", "")
-USERNAME = "phoenix"
+USERNAME = os.getenv("USERNAME", "")
 
 app = typer.Typer()
 
@@ -347,11 +347,15 @@ def list_cards():
 
 # Main Password Manager Commands
 @app.command()
-def init():
+def init(
+    username: str = typer.Option(..., prompt="Enter your username:"),
+):
     crypto = CryptoEngine(USB_KEY_PATH)
-    payload = {"username": USERNAME, "client_auth_hash": crypto.auth_hash}
+    payload = {"username": username, "client_auth_hash": crypto.auth_hash}
     resp = requests.post(f"{SERVER_URL}/register", json=payload)
     typer.echo(resp.json())
+    with open(".env", "w") as f:
+        f.write("USERNAME=" + username + "\n")
 
 @app.command()
 def add(
