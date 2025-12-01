@@ -24,6 +24,7 @@ A custom lightweight terminal-based safe password storage with the following fea
     - Keep the server dumb as it is in the [server.py](PasswordManager/server.py) for safety, try not to move crypto there.
 
 **HOW TO DEPLOY**
+
 *SERVER*:
 The folder have a [Dockerfile](PasswordManager/Dockerfile) and a [compose.yml](PasswordManager/compose.yml) file, too, so put the project files on the server, and then, on the server build and run the image (this is for Docker compose v2, please be normal and use Docker compose v2):
 
