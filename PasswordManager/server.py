@@ -4,8 +4,8 @@ from fastapi import FastAPI, HTTPException, Header
 from pydantic import BaseModel
 from contextlib import asynccontextmanager
 
-# DB_PATH = '/mnt/nas/data.db'  
-DB_PATH = 'jason_vault.db'
+DB_PATH = '/mnt/nas/data.db'  
+# DB_PATH = 'jason_vault.db'
 
 def get_db():
     conn = sqlite3.connect(DB_PATH)

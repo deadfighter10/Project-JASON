@@ -9,7 +9,7 @@ from cryptography.hazmat.primitives.kdf.hkdf import HKDF
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
-SERVER_URL = "http://localhost:8000" 
+SERVER_URL = "http://192.168.100.96:3333" 
 USB_KEY_PATH = "/Volumes/ECHO1/pass.key"
 USERNAME = "phoenix"
 
@@ -19,7 +19,8 @@ app = typer.Typer()
 class CryptoEngine:
     def __init__(self, key_file_path):
         if not os.path.exists(key_file_path):
-            typer.secho(f"USB Key not found at {key_file_path}", fg=typer.colors.RED)
+            typer.secho(f"FATAL: Security key not found!", fg=typer.colors.RED, bold=True)
+            typer.secho("Please insert ECHO1 and try again.", fg=typer.colors.RED, bold=True)
             raise typer.Exit(code=1)
             
         with open(key_file_path, "rb") as f:
@@ -103,33 +104,66 @@ def init():
     typer.echo(resp.json())
 
 @app.command()
-def add(site: str, password: str):
+def add(
+    site: str = typer.Option(..., prompt="What is the site/service name?"),
+    password: str = typer.Option(..., prompt="Enter the password", hide_input=True, confirmation_prompt=True)
+):
     crypto = CryptoEngine(USB_KEY_PATH)
     sync = VaultSync(crypto)
     
     vault = sync.pull()
     
     vault[site] = password
-    typer.echo(f"Added password for {site}")
+    typer.secho(f"Added password for {site}", fg=typer.colors.GREEN)
     
     sync.push(vault)
 
 @app.command()
-def get(site: str):
+def get(
+    site: str = typer.Option(..., prompt="Which site do you need?")
+):
     crypto = CryptoEngine(USB_KEY_PATH)
     sync = VaultSync(crypto)
     
     vault = sync.pull()
     if site in vault:
         pwd = vault[site]
-        typer.secho(f"Password for {site}: {pwd}", fg=typer.colors.GREEN)
+        # print(f"Password: {pwd}")  <-- Optional: Comment this out if you only want it on clipboard
         try:
             pyperclip.copy(pwd)
-            typer.secho("Password copied to clipboard!", fg=typer.colors.BLUE)
+            typer.secho(f"✨ Password for '{site}' copied to clipboard!", fg=typer.colors.GREEN, bold=True)
         except pyperclip.PyperclipException:
-            typer.secho("Failed to copy to clipboard. Is a clipboard mechanism available?", fg=typer.colors.YELLOW)
+            typer.secho("Could not copy to clipboard. Here it is:", fg=typer.colors.YELLOW)
+            typer.secho(pwd, fg=typer.colors.WHITE, bg=typer.colors.BLACK)
     else:
-        typer.secho(f"Site '{site}' not found", fg=typer.colors.RED)
+        typer.secho(f"Site '{site}' not found in vault.", fg=typer.colors.RED)
+
+@app.command()
+def delete(
+    site: str = typer.Option(..., prompt="🗑️ Which site do you want to delete?")
+):
+    crypto = CryptoEngine(USB_KEY_PATH)
+    sync = VaultSync(crypto)
+    
+    # 1. Get current vault
+    vault = sync.pull()
+    
+    # 2. Check if exists
+    if site not in vault:
+        typer.secho(f"Site '{site}' not found in vault.", fg=typer.colors.RED)
+        raise typer.Exit(1)
+
+    # 3. Confirm deletion
+    delete_confirm = typer.confirm(f"Are you sure you want to PERMANENTLY delete the password for '{site}'?", default=False)
+    
+    if not delete_confirm:
+        typer.echo("Operation cancelled.")
+        raise typer.Exit()
+
+    # 4. Delete and Sync
+    del vault[site]
+    sync.push(vault)
+    typer.secho(f"Password for '{site}' deleted.", fg=typer.colors.GREEN)
 
 @app.command()
 def ls():
@@ -143,8 +177,8 @@ def ls():
 
 if __name__ == "__main__":
     if not os.path.exists(USB_KEY_PATH):
-        os.makedirs(os.path.dirname(USB_KEY_PATH), exist_ok=True)
-        with open(USB_KEY_PATH, "wb") as f:
-            f.write(os.urandom(64))
+        typer.secho(f"FATAL: Security key not found!", fg=typer.colors.RED, bold=True)
+        typer.secho("Please insert ECHO1 and try again.", fg=typer.colors.RED, bold=True)
+        exit()
 
     app()
